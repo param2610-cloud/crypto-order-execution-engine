@@ -1,8 +1,10 @@
 import { useState } from "react";
 import "./App.css";
 const domain = import.meta.env.VITE_BACKEND_DOMAIN || "localhost:8080";
-const API_URL =
-  `http://${domain}/api/orders/execute`;
+const isLocal = domain.includes('localhost');
+const protocol = isLocal ? 'http' : 'https';
+const wsProtocol = isLocal ? 'ws' : 'wss';
+const API_URL = `${protocol}://${domain}/api/orders/execute`;
 
 const ORDER_BODY = {
   tokenIn: "7667oZyeKhXWkFXma7zP9rXhSspbHqVSAXfNVSiwZaJx",
@@ -116,7 +118,7 @@ export default function OrderExecutor() {
       // Connect WebSockets for each orderId
       updatedOrders.forEach((order, idx) => {
         const ws = new WebSocket(
-          `ws://localhost:8080/api/orders/execute?orderId=${order.orderId}`
+          `${wsProtocol}://${domain}/api/orders/execute?orderId=${order.orderId}`
         );
 
         ws.onopen = () => {
