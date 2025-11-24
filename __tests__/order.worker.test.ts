@@ -1,9 +1,9 @@
-import { OrderWorker } from '@queue/order.worker';
-import { orderQueue, enqueueOrderJob } from '@queue/order.queue';
-import { OrderJobPayload } from '@type-defs/order.types';
-import { websocketManager } from '@websockets/websocket.manager';
+import { OrderWorker } from '../src/queue/order.worker';
+import { orderQueue, enqueueOrderJob } from '../src/queue/order.queue';
+import { OrderJobPayload } from '../src/types/order.types';
+import { websocketManager } from '../src/websockets/websocket.manager';
 
-jest.mock('@queue/order.queue', () => {
+jest.mock('../src/queue/order.queue', () => {
   const orderQueue = {
     add: jest.fn(async (_name?: string, _payload?: any, _options?: any) => undefined)
   };
@@ -15,8 +15,8 @@ jest.mock('@queue/order.queue', () => {
     })
   };
 });
-jest.mock('@websockets/websocket.manager');
-jest.mock('@dex/router', () => ({
+jest.mock('../src/websockets/websocket.manager');
+jest.mock('../src/dex/router', () => ({
   dexRouter: {
     findBestRoute: jest.fn().mockResolvedValue({
       bestDex: 'raydium',
@@ -25,12 +25,12 @@ jest.mock('@dex/router', () => ({
     })
   }
 }));
-jest.mock('@dex/solana', () => ({
+jest.mock('../src/dex/solana', () => ({
   sendAndConfirm: jest.fn().mockResolvedValue('test-signature')
 }));
 
 // Mock the processor function
-jest.mock('@queue/order.worker', () => ({
+jest.mock('../src/queue/order.worker', () => ({
   OrderWorker: jest.fn().mockImplementation(() => ({
     shutdown: jest.fn()
   })),

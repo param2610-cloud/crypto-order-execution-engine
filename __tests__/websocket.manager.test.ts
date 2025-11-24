@@ -1,7 +1,7 @@
 import { WebSocket } from 'ws';
-import { websocketManager } from '@websockets/websocket.manager';
-import { OrderLifecycleStatus } from '@type-defs/order.types';
-import { logger } from '@utils/logger';
+import { websocketManager } from '../src/websockets/websocket.manager';
+import { OrderLifecycleStatus } from '../src/types/order.types';
+import { logger } from '../src/utils/logger';
 
 describe('WebSocketManager', () => {
   let mockSocket: any;

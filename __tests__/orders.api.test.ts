@@ -1,13 +1,13 @@
 import request from 'supertest';
 import { buildApp } from '../src/app';
-import { orderService } from '@services/order.service';
-import { websocketManager } from '@websockets/websocket.manager';
-import { orderHistoryService } from '@services/order-history.service';
+import { orderService } from '../src/services/order.service';
+import { websocketManager } from '../src/websockets/websocket.manager';
+import { orderHistoryService } from '../src/services/order-history.service';
 import { ZodError } from 'zod';
 
-jest.mock('@services/order.service');
-jest.mock('@websockets/websocket.manager');
-jest.mock('@services/order-history.service');
+jest.mock('../src/services/order.service');
+jest.mock('../src/websockets/websocket.manager');
+jest.mock('../src/services/order-history.service');
 
 describe('Orders API', () => {
   let app: ReturnType<typeof buildApp>;
