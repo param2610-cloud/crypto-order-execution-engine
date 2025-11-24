@@ -125,7 +125,7 @@ curl -X POST https://crypto-order-execution-engine-production.up.railway.app/api
   -d '{
     "tokenIn": "7667oZyeKhXWkFXma7zP9rXhSspbHqVSAXfNVSiwZaJx",
     "tokenOut": "52oX2aHhnhN8vYbtAhDLGjFKE1eEpNuu1Y3U2t4ALRQT",
-    "amount": 10,
+    "amount": 1000000,
     "orderType": "market"
   }'
 ```
@@ -222,7 +222,7 @@ Submit a market order for execution.
 {
   "tokenIn": "string",
   "tokenOut": "string",
-  "amount": "number",
+  "amount": "number", // Amount in smallest token units (lamports)
   "orderType": "market"
 }
 ```

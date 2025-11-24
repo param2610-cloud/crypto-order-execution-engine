@@ -85,16 +85,9 @@ export class SolanaDexRouter implements DexRouter {
     if (amount <= 0) {
       throw new Error('Amount must be positive');
     }
-
-    const decimals = await getMintDecimals(mint);
-    const scale = new Decimal(10).pow(decimals);
-    const lamports = new Decimal(amount).mul(scale).toDecimalPlaces(0, Decimal.ROUND_DOWN);
-
-    if (lamports.lte(0)) {
-      throw new Error('Amount too small to convert to lamports');
-    }
-
-    return BigInt(lamports.toString());
+    // Amount is expected in smallest units (lamports) from the API payload
+    // No scaling needed - clients must provide amounts in token's base units
+    return BigInt(Math.floor(amount));
   }
 
   private withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {

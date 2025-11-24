@@ -13,7 +13,7 @@ const API_URL = `${protocol}://${domain}/api/orders/execute`;
 const ORDER_BODY = {
   tokenIn: "7667oZyeKhXWkFXma7zP9rXhSspbHqVSAXfNVSiwZaJx",
   tokenOut: "52oX2aHhnhN8vYbtAhDLGjFKE1eEpNuu1Y3U2t4ALRQT",
-  amount: 1000000,
+  amount: 1000000, // 1 million lamports (0.001 SOL for 9-decimal tokens)
   orderType: "market",
 };
 
@@ -180,10 +180,7 @@ function OrderExecutor() {
     <div className="container">
       <header className="header">
         <h1>Order Execution Engine</h1>
-        <p>Execute 5 orders simultaneously with real-time WebSocket updates</p>
-        <p className="ws-hint">
-          Browsers use the classic POST + WebSocket flow; run <code>npm run verify:upgrade</code> from the backend to test the POST-upgrade path with Node clients.
-        </p>
+        
       </header>
 
       <button

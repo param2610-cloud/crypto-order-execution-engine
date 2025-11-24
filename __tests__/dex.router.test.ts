@@ -102,7 +102,7 @@ describe('SolanaDexRouter', () => {
       await router.findBestRoute(orderWithDecimal);
 
       expect(mockRaydium.getQuote).toHaveBeenCalledWith(
-        expect.objectContaining({ amount: 1500000000n })
+        expect.objectContaining({ amount: 1n })
       );
     });
   });
