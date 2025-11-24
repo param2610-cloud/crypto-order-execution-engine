@@ -49,7 +49,7 @@ const recordStatus = async (job: Job<OrderJobPayload>, status: OrderLifecycleSta
   websocketManager.sendStatus(job.data.orderId, status, detail, link);
 };
 
-const orderProcessor: Processor<OrderJobPayload> = async (job: Job<OrderJobPayload>) => {
+export const orderProcessor: Processor<OrderJobPayload> = async (job: Job<OrderJobPayload>) => {
   logger.queue.info({ orderId: job.data.orderId }, 'Order job dequeued');
   await recordStatus(job, 'queued');
   await recordStatus(job, 'routing');

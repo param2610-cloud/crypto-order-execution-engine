@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { buildApp } from '@app';
+import { buildApp } from '../src/app';
 import { orderService } from '@services/order.service';
 import { websocketManager } from '@ws/websocket.manager';
 
