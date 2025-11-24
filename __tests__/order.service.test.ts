@@ -3,17 +3,19 @@ import { enqueueOrderJob } from '@queue/order.queue';
 import { generateOrderId } from '@utils/id';
 import { logger } from '@utils/logger';
 import { MarketOrderInput, OrderJobPayload } from '@type-defs/order.types';
+import { orderHistoryService } from '@services/order-history.service';
 
 jest.mock('@queue/order.queue');
 jest.mock('@utils/id');
 jest.mock('@utils/logger');
+jest.mock('@services/order-history.service');
 
 describe('OrderService', () => {
   let service: OrderService;
 
   beforeEach(() => {
     service = new OrderService();
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('submitMarketOrder', () => {
@@ -36,6 +38,7 @@ describe('OrderService', () => {
         orderId: mockOrderId,
         receivedAt: expect.any(String)
       });
+      expect(orderHistoryService.recordNewOrder).toHaveBeenCalledWith(expect.objectContaining({ orderId: mockOrderId }));
       expect(logger.app.info).toHaveBeenCalledWith(
         { orderId: mockOrderId, tokenIn: validPayload.tokenIn, tokenOut: validPayload.tokenOut },
         'Market order validated'

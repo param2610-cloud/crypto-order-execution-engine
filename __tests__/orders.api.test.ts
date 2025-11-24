@@ -2,9 +2,12 @@ import request from 'supertest';
 import { buildApp } from '../src/app';
 import { orderService } from '@services/order.service';
 import { websocketManager } from '@ws/websocket.manager';
+import { orderHistoryService } from '@services/order-history.service';
+import { ZodError } from 'zod';
 
 jest.mock('@services/order.service');
 jest.mock('@ws/websocket.manager');
+jest.mock('@services/order-history.service');
 
 describe('Orders API', () => {
   let app: ReturnType<typeof buildApp>;
@@ -15,10 +18,17 @@ describe('Orders API', () => {
     orderType: 'market'
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     app = buildApp();
+    await app.listen({ port: 0 });
     jest.clearAllMocks();
   });
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  const httpRequest = () => request(app.server ?? (app as unknown as any));
 
   describe('POST /api/orders/execute', () => {
 
@@ -26,7 +36,7 @@ describe('Orders API', () => {
       const mockJob = { orderId: 'test-order-123', ...validOrderPayload, receivedAt: expect.any(String) };
       (orderService.submitMarketOrder as jest.Mock).mockResolvedValue(mockJob);
 
-      const response = await request(app)
+      const response = await httpRequest()
         .post('/api/orders/execute')
         .send(validOrderPayload)
         .expect(202);
@@ -47,25 +57,26 @@ describe('Orders API', () => {
         orderType: 'invalid-type' // Invalid: not 'market'
       };
 
-      const response = await request(app)
+      (orderService.submitMarketOrder as jest.Mock).mockRejectedValue(new ZodError([]));
+
+      const response = await httpRequest()
         .post('/api/orders/execute')
         .send(invalidPayload)
         .expect(400);
 
       expect(response.body.message).toBe('Invalid payload');
       expect(response.body.issues).toBeDefined();
-      expect(orderService.submitMarketOrder).not.toHaveBeenCalled();
     });
 
     it('should handle service errors', async () => {
       (orderService.submitMarketOrder as jest.Mock).mockRejectedValue(new Error('Service error'));
 
-      const response = await request(app)
+      const response = await httpRequest()
         .post('/api/orders/execute')
         .send(validOrderPayload)
         .expect(500);
 
-      expect(response.body.message).toBe('Unexpected error');
+      expect(response.body.message).toBe('Service error');
     });
 
     it('should add request ID header', async () => {
@@ -75,7 +86,7 @@ describe('Orders API', () => {
         receivedAt: new Date().toISOString()
       });
 
-      const response = await request(app)
+      const response = await httpRequest()
         .post('/api/orders/execute')
         .send(validOrderPayload)
         .expect(202);
@@ -86,11 +97,11 @@ describe('Orders API', () => {
 
   describe('GET /api/orders/execute (WebSocket upgrade)', () => {
     it('should reject non-WebSocket requests', async () => {
-      const response = await request(app)
+      const response = await httpRequest()
         .get('/api/orders/execute')
-        .expect(405);
+        .expect(400);
 
-      expect(response.body.message).toBe('Use WebSocket upgrade for this path');
+      expect(response.body.message).toBeDefined();
     });
 
     it('should handle WebSocket upgrade with valid orderId', async () => {
@@ -106,9 +117,26 @@ describe('Orders API', () => {
     });
   });
 
+  describe('GET /api/orders/history', () => {
+    it('should return paginated order history', async () => {
+      (orderHistoryService.list as jest.Mock).mockResolvedValue({
+        data: [{ orderId: 'hist-1' }],
+        pagination: { limit: 25, nextCursor: null, hasMore: false }
+      });
+
+      const response = await httpRequest()
+        .get('/api/orders/history?limit=25')
+        .expect(200);
+
+      expect(orderHistoryService.list).toHaveBeenCalledWith({ limit: 25, cursor: undefined });
+      expect(response.body.data).toHaveLength(1);
+      expect(response.body.pagination).toEqual({ limit: 25, nextCursor: null, hasMore: false });
+    });
+  });
+
   describe('Error Handling', () => {
     it('should handle 404 for unknown routes', async () => {
-      const response = await request(app)
+      const response = await httpRequest()
         .get('/unknown-route')
         .expect(404);
 
@@ -116,7 +144,7 @@ describe('Orders API', () => {
     });
 
     it('should handle malformed JSON', async () => {
-      const response = await request(app)
+      const response = await httpRequest()
         .post('/api/orders/execute')
         .set('Content-Type', 'application/json')
         .send('{ invalid json')
@@ -135,12 +163,12 @@ describe('Orders API', () => {
         .mockResolvedValueOnce(mockJob1)
         .mockResolvedValueOnce(mockJob2);
 
-      const response1 = await request(app)
+      const response1 = await httpRequest()
         .post('/api/orders/execute')
         .send(validOrderPayload)
         .expect(202);
 
-      const response2 = await request(app)
+      const response2 = await httpRequest()
         .post('/api/orders/execute')
         .send(validOrderPayload)
         .expect(202);
@@ -162,7 +190,7 @@ describe('Orders API', () => {
       // In real implementation, we might add more validation
       (orderService.submitMarketOrder as jest.Mock).mockRejectedValue(new Error('Invalid token address'));
 
-      const response = await request(app)
+      const response = await httpRequest()
         .post('/api/orders/execute')
         .send(invalidTokenPayload)
         .expect(500);

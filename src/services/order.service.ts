@@ -2,6 +2,7 @@ import { enqueueOrderJob } from '@queue/order.queue';
 import { OrderJobPayload, MarketOrderInput, marketOrderSchema } from '@type-defs/order.types';
 import { generateOrderId } from '@utils/id';
 import { logger } from '@utils/logger';
+import { orderHistoryService } from '@services/order-history.service';
 
 /**
  * Encapsulates order validation + persistence before queueing.
@@ -18,6 +19,7 @@ export class OrderService {
     };
 
     logger.app.info({ orderId, tokenIn: parsed.tokenIn, tokenOut: parsed.tokenOut }, 'Market order validated');
+    await orderHistoryService.recordNewOrder(jobPayload);
     await enqueueOrderJob(jobPayload);
     return jobPayload;
   }

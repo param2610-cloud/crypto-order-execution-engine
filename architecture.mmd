@@ -1,0 +1,42 @@
+graph TB
+    subgraph "Frontend (React + WebSocket)"
+        A[User Interface]
+        B[WebSocket Client]
+        C[Order Submission]
+    end
+
+    subgraph "Backend (Fastify Server)"
+        D[HTTP Routes<br/>/api/orders/execute]
+        E[WebSocket Manager]
+        F[BullMQ Queue]
+        G[Order Worker]
+    end
+
+    subgraph "DEX Layer"
+        H[DEX Router]
+        I[Raydium Client]
+        J[Meteora Client]
+    end
+
+    subgraph "Blockchain"
+        K[Solana Devnet]
+        L[Transaction Execution]
+    end
+
+    A --> C
+    C --> D
+    D --> F
+    F --> G
+    G --> H
+    H --> I
+    H --> J
+    I --> L
+    J --> L
+    L --> K
+    G --> E
+    E --> B
+
+    style A fill:#e1f5fe
+    style D fill:#f3e5f5
+    style H fill:#e8f5e8
+    style K fill:#fff3e0

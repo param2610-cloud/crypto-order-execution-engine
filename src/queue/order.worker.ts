@@ -6,6 +6,7 @@ import { websocketManager } from '@ws/websocket.manager';
 import { logger } from '@utils/logger';
 import { dexRouter } from '@dex/router';
 import { logSignatureExplorerHint, sendAndConfirm } from '@dex/solana';
+import { orderHistoryService } from '@services/order-history.service';
 
 const ORDER_QUEUE_NAME = 'orders';
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -32,19 +33,35 @@ const acquireRateLimit = async () => {
   }
 };
 
-const recordStatus = async (job: Job<OrderJobPayload>, status: OrderLifecycleStatus, detail?: string, link?: string) => {
+const recordStatus = async (
+  job: Job<OrderJobPayload>,
+  status: OrderLifecycleStatus,
+  detail?: string,
+  link?: string,
+  extras?: { dex?: string; txHash?: string; executedAmount?: string; lastError?: string }
+) => {
   const emitted = new Set(job.data.emittedStatuses ?? []);
-  if (emitted.has(status)) {
-    if (detail) websocketManager.sendStatus(job.data.orderId, status, detail, link);
-    return;
-  }
+  const isNewStatus = !emitted.has(status);
 
-  emitted.add(status);
-  job.data.emittedStatuses = Array.from(emitted);
-  try {
-    await job.updateData(job.data);
-  } catch (error) {
-    logger.queue.warn({ orderId: job.data.orderId, status, error }, 'Failed to persist lifecycle status');
+  if (isNewStatus) {
+    emitted.add(status);
+    job.data.emittedStatuses = Array.from(emitted);
+    try {
+      await job.updateData(job.data);
+    } catch (error) {
+      logger.queue.warn({ orderId: job.data.orderId, status, error }, 'Failed to persist lifecycle status');
+    }
+    try {
+      await orderHistoryService.appendStatus(job.data.orderId, status, detail, link, extras);
+    } catch (error) {
+      logger.queue.warn({ orderId: job.data.orderId, status, error }, 'Failed to persist order history status');
+    }
+  } else if (extras && Object.values(extras).some(Boolean)) {
+    try {
+      await orderHistoryService.appendStatus(job.data.orderId, status, detail, link, extras);
+    } catch (error) {
+      logger.queue.warn({ orderId: job.data.orderId, status, error }, 'Failed to update order history status');
+    }
   }
   websocketManager.sendStatus(job.data.orderId, status, detail, link);
 };
@@ -57,6 +74,7 @@ export const orderProcessor: Processor<OrderJobPayload> = async (job: Job<OrderJ
 
   try {
     const route = await dexRouter.findBestRoute(job.data);
+    await orderHistoryService.recordRoutingDecision(job.data.orderId, route.quote);
     await recordStatus(job, 'building');
     const built = await route.buildTransaction();
 
@@ -64,12 +82,24 @@ export const orderProcessor: Processor<OrderJobPayload> = async (job: Job<OrderJ
       additionalSigners: built.signers,
       onSubmitted: async (sig) => {
         job.data.lastTxSignature = sig;
-        await recordStatus(job, 'submitted', sig, `https://explorer.solana.com/tx/${sig}?cluster=devnet`);
+        await recordStatus(
+          job,
+          'submitted',
+          sig,
+          `https://explorer.solana.com/tx/${sig}?cluster=devnet`,
+          { dex: route.bestDex, txHash: sig }
+        );
       }
     });
 
     logSignatureExplorerHint(signature);
-    await recordStatus(job, 'confirmed', signature, `https://explorer.solana.com/tx/${signature}?cluster=devnet`);
+    await recordStatus(
+      job,
+      'confirmed',
+      signature,
+      `https://explorer.solana.com/tx/${signature}?cluster=devnet`,
+      { txHash: signature, executedAmount: route.quote.estimatedOut.toString() }
+    );
 
     return {
       jobId: job.id,
@@ -119,7 +149,7 @@ export class OrderWorker {
       const orderId = job?.data?.orderId;
       logger.queue.error({ orderId, error }, 'Order job failed');
       if (job) {
-        void recordStatus(job, 'failed', error.message);
+        void recordStatus(job, 'failed', error.message, undefined, { lastError: error.message });
       }
     });
 

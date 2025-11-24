@@ -4,6 +4,9 @@
 
 1. **Environment Variables** - Create/update `.env`:
 ```env
+# Database
+POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/order_history
+
 # Solana Configuration
 SOLANA_RPC_URL=https://api.devnet.solana.com
 SOLANA_COMMITMENT=confirmed

@@ -37,6 +37,10 @@ body {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
+.nav-link.active {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
 .container {
   max-width: 1600px;
   margin: 0 auto;
@@ -341,6 +345,149 @@ body {
   line-height: 1.4;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.history-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 20px;
+}
+
+.history-controls-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+}
+
+.history-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.history-controls select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-weight: 600;
+}
+
+.history-table-wrapper {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.history-table th,
+.history-table td {
+  padding: 16px;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.history-table th {
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  color: #6b7280;
+}
+
+.history-empty {
+  text-align: center;
+  padding: 60px 0;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.history-order-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.history-order-cell code {
+  font-size: 0.9rem;
+}
+
+.history-order-cell small {
+  color: #94a3b8;
+}
+
+.history-pair {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Monaco", "Courier New", monospace;
+  font-size: 0.85rem;
+}
+
+.history-arrow {
+  color: #cbd5ff;
+}
+
+.history-status {
+  display: inline-block;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.history-error {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin-top: 6px;
+  max-width: 240px;
+}
+
+.history-link {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.history-link:hover {
+  text-decoration: underline;
+}
+
+.history-timeline {
+  font-size: 0.8rem;
+  color: #475569;
+  font-family: "Monaco", "Courier New", monospace;
+}
+
+.history-load-more {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.load-more-btn {
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+  background: #667eea;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.load-more-btn.disabled,
+.load-more-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 @media (max-width: 1200px) {

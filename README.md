@@ -12,6 +12,15 @@ A high-performance, production-ready order execution engine for Solana DEX tradi
 - **Transaction Monitoring**: Full transaction lifecycle tracking with Solana explorer links
 - **Error Handling**: Comprehensive error handling with retry logic and graceful failures
 - **Clean Architecture**: Modular, testable codebase following Clean Architecture principles
+- **Order History**: PostgreSQL-backed audit trail with REST + UI access
+
+## 🎨 Frontend
+
+A React-based UI for order execution with real-time WebSocket updates.
+- **Live Demo**: https://crypto-order-execution-engine.vercel.app/
+- **Features**: Concurrent order submission, live status tracking, DEX routing logs
+- **Technologies**: React, Vite, WebSocket client
+- **Location**: `frontend/` folder
 
 ## 🏗️ Architecture & Design Decisions
 
@@ -58,6 +67,11 @@ npm install
 ### 2. Environment Configuration
 Create a `.env` file in the root directory:
 ```env
+# Database
+POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/order_history
+POSTGRES_POOL_MAX=10
+POSTGRES_IDLE_TIMEOUT_MS=30000
+
 # Solana Configuration
 SOLANA_RPC_URL=https://api.devnet.solana.com
 SOLANA_COMMITMENT=confirmed
@@ -72,7 +86,7 @@ PORT=8080
 NODE_ENV=development
 
 # Trading Configuration
-SLIPPAGE=0.10
+SLIPPAGE=0.01
 ```
 
 ### 3. Start Redis
@@ -92,9 +106,14 @@ The server will start on `http://localhost:8080` with hot reload enabled.
 
 ## 📖 Usage
 
+### Live Demo
+- **Frontend**: https://crypto-order-execution-engine.vercel.app/
+- **Backend API**: https://crypto-order-execution-engine-production.up.railway.app
+- **History Tab**: Track persisted executions under the `History` navigation item
+
 ### Submit an Order
 ```bash
-curl -X POST http://localhost:8080/api/orders/execute \
+curl -X POST https://crypto-order-execution-engine-production.up.railway.app/api/orders/execute \
   -H "Content-Type: application/json" \
   -d '{
     "tokenIn": "7667oZyeKhXWkFXma7zP9rXhSspbHqVSAXfNVSiwZaJx",
@@ -107,7 +126,7 @@ curl -X POST http://localhost:8080/api/orders/execute \
 ### Monitor via WebSocket
 Connect to the WebSocket endpoint with the orderId:
 ```javascript
-const ws = new WebSocket('ws://localhost:8080/api/orders/execute?orderId=YOUR_ORDER_ID');
+const ws = new WebSocket('wss://crypto-order-execution-engine-production.up.railway.app/api/orders/execute?orderId=YOUR_ORDER_ID');
 
 ws.onmessage = (event) => {
   const data = JSON.parse(event.data);
@@ -165,6 +184,36 @@ Submit a market order for execution.
 {
   "orderId": "string",
   "status": "pending"
+}
+```
+
+#### GET /api/orders/history
+Stream order records directly from PostgreSQL with cursor-based pagination.
+
+**Query Params:**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `limit` | number (1-200) | Max rows per page (default 50) |
+| `cursor` | ISO timestamp | Keyset cursor returned from previous call |
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "orderId": "abc123",
+      "status": "confirmed",
+      "dex": "raydium",
+      "txHash": "...",
+      "statusHistory": [ { "status": "pending", "detail": "Order accepted", "recordedAt": "..." } ]
+    }
+  ],
+  "pagination": {
+    "limit": 50,
+    "nextCursor": null,
+    "hasMore": false
+  }
 }
 ```
 
@@ -233,8 +282,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📚 Additional Resources
 
-- [Backend Task 2 Specification](./Backend Task 2_ Order Execution Engine.pdf)
-- [Fast-Track Guide](./Solana DevNet Order Engine_ Fast-Track Guide.pdf)
+- **Backend API**: https://crypto-order-execution-engine-production.up.railway.app
+- [Quick Start Guide](./QUICKSTART.md)
+- [Raydium Integration Changes](./RAYDIUM_INTEGRATION_CHANGES.md)
 - [Raydium SDK Documentation](https://docs.raydium.io/)
 - [Meteora SDK Documentation](https://docs.meteora.ag/)
 - [BullMQ Documentation](https://docs.bullmq.io/)

@@ -1,6 +1,7 @@
 import { WebSocket } from 'ws';
 import { websocketManager } from '@ws/websocket.manager';
 import { OrderLifecycleStatus } from '@type-defs/order.types';
+import { logger } from '@utils/logger';
 
 describe('WebSocketManager', () => {
   let mockSocket: any;
@@ -16,6 +17,7 @@ describe('WebSocketManager', () => {
   });
 
   afterEach(() => {
+    websocketManager.reset();
     jest.clearAllMocks();
   });
 
@@ -51,7 +53,6 @@ describe('WebSocketManager', () => {
     });
 
     it('should handle socket error', () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       websocketManager.attach('order-123', mockSocket);
 
       const errorCall = mockSocket.on.mock.calls.find((call: any) => call[0] === 'error');
@@ -60,8 +61,7 @@ describe('WebSocketManager', () => {
         errorHandler(new Error('Socket error'));
       }
 
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
+      expect(logger.ws.error).toHaveBeenCalled();
     });
   });
 

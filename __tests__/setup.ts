@@ -14,13 +14,16 @@ jest.mock('@config/redis', () => ({
 }));
 
 // Mock logger
+const createMockLogger = () => ({ info: jest.fn(), error: jest.fn(), warn: jest.fn(), debug: jest.fn() });
+
 jest.mock('@utils/logger', () => ({
   logger: {
-    app: { info: jest.fn(), error: jest.fn(), warn: jest.fn() },
-    dex: { info: jest.fn(), error: jest.fn(), warn: jest.fn() },
-    ws: { info: jest.fn(), error: jest.fn(), warn: jest.fn() },
-    queue: { info: jest.fn(), error: jest.fn(), warn: jest.fn() }
-  }
+    app: createMockLogger(),
+    dex: createMockLogger(),
+    ws: createMockLogger(),
+    queue: createMockLogger()
+  },
+  getLogger: jest.fn(() => createMockLogger())
 }));
 
 // Mock Solana connection
@@ -71,4 +74,14 @@ jest.mock('@dex/meteora.client', () => ({
 // Mock nanoid
 jest.mock('nanoid', () => ({
   customAlphabet: jest.fn(() => jest.fn(() => 'mock-nanoid'))
+}));
+
+jest.mock('@services/order-history.service', () => ({
+  orderHistoryService: {
+    init: jest.fn(),
+    recordNewOrder: jest.fn(),
+    appendStatus: jest.fn(),
+    recordRoutingDecision: jest.fn(),
+    list: jest.fn()
+  }
 }));

@@ -3,10 +3,13 @@ import type { SocketStream } from '@fastify/websocket';
 import { orderService } from '@services/order.service';
 import { websocketManager } from '@ws/websocket.manager';
 import { logger } from '@utils/logger';
+import { orderHistoryService } from '@services/order-history.service';
 
 type ExecuteOrderRequest = FastifyRequest<{ Body: unknown }>;
 
 type OrderSocketRequest = FastifyRequest<{ Querystring: { orderId?: string } }>;
+
+type OrderHistoryRequest = FastifyRequest<{ Querystring: { limit?: number; cursor?: string } }>;
 
 /**
  * Handles the HTTP + WebSocket lifecycle for order execution requests.
@@ -38,6 +41,12 @@ class OrdersController {
       logger.ws.error({ error }, 'WS handler error');
       connection.socket.close(1011, 'Internal server error');
     }
+  }
+
+  async history(request: OrderHistoryRequest, reply: FastifyReply) {
+    const { limit, cursor } = request.query ?? {};
+    const result = await orderHistoryService.list({ limit, cursor });
+    return reply.status(200).send(result);
   }
 }
 

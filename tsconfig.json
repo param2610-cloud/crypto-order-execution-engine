@@ -18,6 +18,7 @@
       "@controllers/*": ["controllers/*"],
       "@routes/*": ["routes/*"],
       "@services/*": ["services/*"],
+      "@repositories/*": ["repositories/*"],
       "@queue/*": ["queue/*"],
       "@ws/*": ["ws/*"],
       "@dex/*": ["dex/*"],

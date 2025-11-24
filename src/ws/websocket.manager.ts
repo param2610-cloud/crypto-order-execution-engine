@@ -1,4 +1,4 @@
-import type { WebSocket } from 'ws';
+import WebSocket from 'ws';
 import { OrderStatusMessage, OrderLifecycleStatus } from '@type-defs/order.types';
 import { logger } from '@utils/logger';
 
@@ -29,7 +29,7 @@ class WebSocketManager {
 
   send(orderId: string, payload: OrderStatusMessage) {
     const socket = this.sockets.get(orderId);
-    if (!socket || socket.readyState !== socket.OPEN) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
       const queued = this.pendingMessages.get(orderId) ?? [];
       queued.push(payload);
       this.pendingMessages.set(orderId, queued);
@@ -58,13 +58,27 @@ class WebSocketManager {
     if (!socket) return;
 
     try {
-      if (socket.readyState === socket.OPEN || socket.readyState === socket.CLOSING) {
+      if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CLOSING) {
         socket.close();
       }
     } finally {
       this.sockets.delete(orderId);
       logger.ws.info({ orderId }, 'WebSocket detached');
     }
+  }
+
+  reset() {
+    this.sockets.forEach((socket, orderId) => {
+      try {
+        if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CLOSING) {
+          socket.close();
+        }
+      } catch (error) {
+        logger.ws.warn({ orderId, error }, 'Failed to close socket during reset');
+      }
+    });
+    this.sockets.clear();
+    this.pendingMessages.clear();
   }
 }
 

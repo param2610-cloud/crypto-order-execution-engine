@@ -1,7 +1,8 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, NavLink } from 'react-router-dom';
 import { useState } from "react";
 import "./App.css";
 import Logs from './Logs.jsx';
+import History from './History.jsx';
 
 const domain = import.meta.env.VITE_BACKEND_DOMAIN || "localhost:8080";
 const isLocal = domain.includes('localhost');
@@ -284,12 +285,20 @@ export default function App() {
   return (
     <div>
       <nav className="nav-bar">
-        <Link to="/" className="nav-link">Orders</Link>
-        <Link to="/logs" className="nav-link">Logs</Link>
+        <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+          Orders
+        </NavLink>
+        <NavLink to="/logs" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+          Logs
+        </NavLink>
+        <NavLink to="/history" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+          History
+        </NavLink>
       </nav>
       <Routes>
         <Route path="/" element={<OrderExecutor />} />
         <Route path="/logs" element={<Logs />} />
+        <Route path="/history" element={<History />} />
       </Routes>
     </div>
   );

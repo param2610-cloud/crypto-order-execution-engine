@@ -5,6 +5,18 @@ import { ordersController } from '@controllers/orders.controller';
  * Registers HTTP + WebSocket endpoints for /api/orders/execute.
  */
 export const ordersRoute: FastifyPluginAsync = async (fastify) => {
+  fastify.get<{ Querystring: { limit?: number; cursor?: string } }>('/api/orders/history', {
+    schema: {
+      querystring: {
+        type: 'object',
+        properties: {
+          limit: { type: 'integer', minimum: 1, maximum: 200, default: 50 },
+          cursor: { type: 'string' }
+        }
+      }
+    }
+  }, (request, reply) => ordersController.history(request, reply));
+
   fastify.route<{ Body: unknown }>({
     method: 'POST',
     url: '/api/orders/execute',

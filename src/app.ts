@@ -40,6 +40,10 @@ export const buildApp = () => {
       reply.status(400).send({ message: 'Invalid payload', issues: error.issues });
       return;
     }
+    if ((error as any)?.code === 'FST_ERR_CTP_INVALID_JSON' || error instanceof SyntaxError) {
+      reply.status(400).send({ message: 'Invalid payload' });
+      return;
+    }
     reply.status(error.statusCode ?? 500).send({
       message: error.message ?? 'Unexpected error'
     });

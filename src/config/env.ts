@@ -49,6 +49,12 @@ export const env = {
     password: process.env.REDIS_PASSWORD,
     db: toNumber(process.env.REDIS_DB, 0)
   },
+  database: {
+    url: process.env.POSTGRES_URL ?? '',
+    poolSize: toNumber(process.env.POSTGRES_POOL_MAX, 10),
+    idleTimeoutMs: toNumber(process.env.POSTGRES_IDLE_TIMEOUT_MS, 30_000),
+    ssl: process.env.POSTGRES_SSL === 'true'
+  },
   queue: {
     concurrency: 10,
     rateLimit: 100,
