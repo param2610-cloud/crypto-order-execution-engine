@@ -23,6 +23,11 @@ graph TB
         L[Transaction Execution]
     end
 
+    subgraph "Database Services"
+        M[PostgreSQL<br/>Order History]
+        N[Redis<br/>Queue Storage]
+    end
+
     A --> C
     C --> D
     D --> F
@@ -35,8 +40,12 @@ graph TB
     L --> K
     G --> E
     E --> B
+    G --> M
+    F --> N
 
     style A fill:#e1f5fe
     style D fill:#f3e5f5
     style H fill:#e8f5e8
     style K fill:#fff3e0
+    style M fill:#fce4ec
+    style N fill:#fce4ec

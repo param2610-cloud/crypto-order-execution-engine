@@ -31,6 +31,62 @@ A React-based UI for order execution with real-time WebSocket updates.
 
 ## 🏗️ Architecture & Design Decisions
 
+### System Architecture
+
+```mermaid
+graph TB
+    subgraph "Frontend (React + WebSocket)"
+        A[User Interface]
+        B[WebSocket Client]
+        C[Order Submission]
+    end
+
+    subgraph "Backend (Fastify Server)"
+        D[HTTP Routes<br/>/api/orders/execute]
+        E[WebSocket Manager]
+        F[BullMQ Queue]
+        G[Order Worker]
+    end
+
+    subgraph "DEX Layer"
+        H[DEX Router]
+        I[Raydium Client]
+        J[Meteora Client]
+    end
+
+    subgraph "Blockchain"
+        K[Solana Devnet]
+        L[Transaction Execution]
+    end
+
+    subgraph "Database Services"
+        M[PostgreSQL<br/>Order History]
+        N[Redis<br/>Queue Storage]
+    end
+
+    A --> C
+    C --> D
+    D --> F
+    F --> G
+    G --> H
+    H --> I
+    H --> J
+    I --> L
+    J --> L
+    L --> K
+    G --> E
+    E --> B
+    G --> M
+    F --> N
+
+    style A fill:#e1f5fe
+    style D fill:#f3e5f5
+    style H fill:#e8f5e8
+    style K fill:#fff3e0
+    style M fill:#fce4ec
+    style N fill:#fce4ec
+```
+
 ### Clean Architecture
 The codebase follows Clean Architecture principles with clear separation of concerns:
 - **Controllers**: Handle HTTP/WebSocket requests and responses
