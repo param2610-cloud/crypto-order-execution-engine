@@ -23,16 +23,23 @@ export class MeteoraClient implements DexClient {
 	async getQuote(request: QuoteRequest): Promise<QuoteResponse> {
 		const connection = this.getMeteoraConnection();
 		
-		// First, try the specific pool
+		// First, try the specific pool if it matches the tokens
 		let best: { quote: MeteoraQuote; request: QuoteRequest } | undefined;
 		try {
-			const quote = await this.fetchPoolQuote(METEORA_POOL_ID, request);
-			best = { quote, request };
+			const amm = await this.loadPool(METEORA_POOL_ID);
+			await amm.updateState();
+			logger.dex.info({ dex: this.name, pool: METEORA_POOL_ID.toBase58(), tokenA: amm.tokenAMint.address.toBase58(), tokenB: amm.tokenBMint.address.toBase58() }, 'Loaded specific Meteora pool');
+			if (this.matchPool(amm.tokenAMint.address, amm.tokenBMint.address, request.tokenIn, request.tokenOut)) {
+				const quote = await this.fetchPoolQuote(METEORA_POOL_ID, request);
+				best = { quote, request };
+			} else {
+				logger.dex.warn({ dex: this.name, pool: METEORA_POOL_ID.toBase58(), tokenA: amm.tokenAMint.address.toBase58(), tokenB: amm.tokenBMint.address.toBase58(), requestedIn: request.tokenIn.toBase58(), requestedOut: request.tokenOut.toBase58() }, 'Specific Meteora pool does not match token pair');
+			}
 		} catch (error) {
-			logger.dex.warn({ dex: this.name, pool: METEORA_POOL_ID.toBase58(), error }, 'Failed to quote specific Meteora pool');
+			logger.dex.warn({ dex: this.name, pool: METEORA_POOL_ID.toBase58(), error: error instanceof Error ? error.message : String(error) }, 'Failed to quote specific Meteora pool');
 		}
 
-		// If specific pool didn't work, search for other pools
+		// If specific pool didn't work or doesn't match, search for other pools
 		if (!best) {
 			const pools = await AmmImpl.searchPoolsByToken(connection, request.tokenIn);
 			const matches = pools.filter((pool) =>

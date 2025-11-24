@@ -149,6 +149,11 @@ function OrderExecutor() {
               logs: [...current.logs, `→ ${prettyPayload}`],
             };
           });
+
+          // Close WebSocket after order is confirmed
+          if (payload?.status === 'confirmed') {
+            ws.close();
+          }
         };
 
         ws.onerror = () => {
