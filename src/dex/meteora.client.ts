@@ -14,30 +14,40 @@ type MeteoraQuote = {
 	priceImpactBps: number;
 };
 
+const METEORA_POOL_ID = new PublicKey('Exjh4fuLKjtNjQVpZx9CghYEMa7XsF54TP8FALPK74q9');
+
 export class MeteoraClient implements DexClient {
 	readonly name = 'meteora' as const;
 	private readonly poolCache = new Map<string, AmmImpl>();
 
 	async getQuote(request: QuoteRequest): Promise<QuoteResponse> {
 		const connection = this.getMeteoraConnection();
-		const pools = await AmmImpl.searchPoolsByToken(connection, request.tokenIn);
-		const matches = pools.filter((pool) =>
-			this.matchPool(pool.account.tokenAMint, pool.account.tokenBMint, request.tokenIn, request.tokenOut)
-		);
-
-		if (!matches.length) {
-			throw new Error('No Meteora pools available for requested pair');
+		
+		// First, try the specific pool
+		let best: { quote: MeteoraQuote; request: QuoteRequest } | undefined;
+		try {
+			const quote = await this.fetchPoolQuote(METEORA_POOL_ID, request);
+			best = { quote, request };
+		} catch (error) {
+			logger.dex.warn({ dex: this.name, pool: METEORA_POOL_ID.toBase58(), error }, 'Failed to quote specific Meteora pool');
 		}
 
-		let best: { quote: MeteoraQuote; request: QuoteRequest } | undefined;
-		for (const pool of matches) {
-			try {
-				const quote = await this.fetchPoolQuote(pool.publicKey, request);
-				if (!best || quote.swapOutAmount.gt(best.quote.swapOutAmount)) {
-					best = { quote, request };
+		// If specific pool didn't work, search for other pools
+		if (!best) {
+			const pools = await AmmImpl.searchPoolsByToken(connection, request.tokenIn);
+			const matches = pools.filter((pool) =>
+				this.matchPool(pool.account.tokenAMint, pool.account.tokenBMint, request.tokenIn, request.tokenOut)
+			);
+
+			for (const pool of matches) {
+				try {
+					const quote = await this.fetchPoolQuote(pool.publicKey, request);
+					if (!best || quote.swapOutAmount.gt(best.quote.swapOutAmount)) {
+						best = { quote, request };
+					}
+				} catch (error) {
+					logger.dex.warn({ dex: this.name, pool: pool.publicKey.toBase58(), error }, 'Failed to quote Meteora pool');
 				}
-			} catch (error) {
-				logger.dex.warn({ dex: this.name, pool: pool.publicKey.toBase58(), error }, 'Failed to quote Meteora pool');
 			}
 		}
 
