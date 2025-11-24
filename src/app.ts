@@ -19,7 +19,7 @@ export const buildApp = () => {
   });
 
   app.register(cors, {
-    origin: 'https://crypto-order-execution-engine.vercel.app/', // Allow specific origin for production
+    origin: 'https://crypto-order-execution-engine.vercel.app', // Allow specific origin for production
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
   });
