@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { SocketStream } from '@fastify/websocket';
 import { orderService } from '@services/order.service';
-import { websocketManager } from '@ws/websocket.manager';
+import { websocketManager } from '@websockets/websocket.manager';
 import { logger } from '@utils/logger';
 import { orderHistoryService } from '@services/order-history.service';
 

@@ -1,5 +1,5 @@
 import { WebSocket } from 'ws';
-import { websocketManager } from '@ws/websocket.manager';
+import { websocketManager } from '@websockets/websocket.manager';
 import { OrderLifecycleStatus } from '@type-defs/order.types';
 import { logger } from '@utils/logger';
 

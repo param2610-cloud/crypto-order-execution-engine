@@ -1,7 +1,7 @@
 import { OrderWorker } from '@queue/order.worker';
 import { orderQueue, enqueueOrderJob } from '@queue/order.queue';
 import { OrderJobPayload } from '@type-defs/order.types';
-import { websocketManager } from '@ws/websocket.manager';
+import { websocketManager } from '@websockets/websocket.manager';
 
 jest.mock('@queue/order.queue', () => {
   const orderQueue = {
@@ -15,7 +15,7 @@ jest.mock('@queue/order.queue', () => {
     })
   };
 });
-jest.mock('@ws/websocket.manager');
+jest.mock('@websockets/websocket.manager');
 jest.mock('@dex/router', () => ({
   dexRouter: {
     findBestRoute: jest.fn().mockResolvedValue({

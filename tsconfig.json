@@ -20,7 +20,7 @@
       "@services/*": ["services/*"],
       "@repositories/*": ["repositories/*"],
       "@queue/*": ["queue/*"],
-      "@ws/*": ["ws/*"],
+      "@websockets/*": ["websockets/*"],
       "@dex/*": ["dex/*"],
       "@type-defs/*": ["types/*"],
       "@utils/*": ["utils/*"]

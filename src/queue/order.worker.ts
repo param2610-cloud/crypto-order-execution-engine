@@ -2,7 +2,7 @@ import { Job, Processor, QueueEvents, Worker } from 'bullmq';
 import { env } from '@config/env';
 import { createRedisConnection } from '@config/redis';
 import { OrderJobPayload, OrderLifecycleStatus } from '@type-defs/order.types';
-import { websocketManager } from '@ws/websocket.manager';
+import { websocketManager } from '@websockets/websocket.manager';
 import { logger } from '@utils/logger';
 import { dexRouter } from '@dex/router';
 import { logSignatureExplorerHint, sendAndConfirm } from '@dex/solana';

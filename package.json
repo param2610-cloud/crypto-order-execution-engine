@@ -79,7 +79,7 @@
       "^@repositories/(.*)$": "<rootDir>/src/repositories/$1",
       "^@type-defs/(.*)$": "<rootDir>/src/types/$1",
       "^@utils/(.*)$": "<rootDir>/src/utils/$1",
-      "^@ws/(.*)$": "<rootDir>/src/ws/$1",
+      "^@websockets/(.*)$": "<rootDir>/src/websockets/$1",
       "^@app$": "<rootDir>/src/app"
     }
   }

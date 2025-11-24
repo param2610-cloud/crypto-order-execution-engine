@@ -1,12 +1,12 @@
 import request from 'supertest';
 import { buildApp } from '../src/app';
 import { orderService } from '@services/order.service';
-import { websocketManager } from '@ws/websocket.manager';
+import { websocketManager } from '@websockets/websocket.manager';
 import { orderHistoryService } from '@services/order-history.service';
 import { ZodError } from 'zod';
 
 jest.mock('@services/order.service');
-jest.mock('@ws/websocket.manager');
+jest.mock('@websockets/websocket.manager');
 jest.mock('@services/order-history.service');
 
 describe('Orders API', () => {
