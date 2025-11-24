@@ -296,7 +296,7 @@ WebSocket endpoint for real-time order status updates.
 
 ## 📹 Demo & Proof
 
-- **Video walkthrough**: _Pending upload_
+- **Video walkthrough** (5 concurrent orders, routing logs, WS dashboard): https://youtu.be/W0OCij5M_b0
 - **Backend deployment**: https://crypto-order-execution-engine-production.up.railway.app
 - **Frontend dashboard**: https://crypto-order-execution-engine.vercel.app/
 - **Transaction proof**: every executed order emits the confirmed signature and explorer link over WebSocket *and* persists it in Postgres. You can fetch the latest 100 log lines (including signatures) via `GET https://crypto-order-execution-engine-production.up.railway.app/logs` or by opening the `History` tab in the UI to copy the explorer link.
