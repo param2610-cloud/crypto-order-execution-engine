@@ -181,6 +181,9 @@ function OrderExecutor() {
       <header className="header">
         <h1>Order Execution Engine</h1>
         <p>Execute 5 orders simultaneously with real-time WebSocket updates</p>
+        <p className="ws-hint">
+          Browsers use the classic POST + WebSocket flow; run <code>npm run verify:upgrade</code> from the backend to test the POST-upgrade path with Node clients.
+        </p>
       </header>
 
       <button

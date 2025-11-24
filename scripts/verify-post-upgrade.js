@@ -8,7 +8,10 @@
  */
 'use strict';
 
-const { request } = require('undici');
+const http = require('http');
+const https = require('https');
+const crypto = require('crypto');
+const { URL } = require('url');
 
 const DEFAULT_TOKEN_IN = 'So11111111111111111111111111111111111111112';
 const DEFAULT_TOKEN_OUT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
@@ -37,25 +40,14 @@ async function main() {
   console.log('👉 Sending POST upgrade request to', url);
   console.log('   Payload:', stringify(payload));
 
-  const upgradeResult = await new Promise((resolve, reject) => {
-    request(url, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'content-length': Buffer.byteLength(body).toString()
-      },
-      body,
-      upgrade: 'websocket',
-      onUpgrade: (res, socket) => resolve({ res, socket })
-    }).catch(reject);
-  });
+  const upgradeResult = await issueUpgrade(url, body);
 
-  const { res, socket } = upgradeResult;
-  if (res.statusCode !== 101) {
-    throw new Error(`Expected HTTP 101 Switching Protocols, received ${res.statusCode}`);
+  const { response, socket } = upgradeResult;
+  if (response.statusCode !== 101) {
+    throw new Error(`Expected HTTP 101 Switching Protocols, received ${response.statusCode}`);
   }
 
-  const orderId = res.headers['x-order-id'] ?? res.headers['X-Order-Id'];
+  const orderId = response.headers['x-order-id'] ?? response.headers['X-Order-Id'];
   console.log('✅ Upgrade acknowledged (101). orderId header =', orderId ?? '<missing>');
 
   await new Promise((resolve, reject) => {
@@ -79,6 +71,55 @@ async function main() {
   });
 
   console.log('Done. If you saw a 101 response, intermediaries allowed the POST-based upgrade.');
+}
+
+function issueUpgrade(url, body) {
+  const parsed = new URL(url);
+  const isHttps = parsed.protocol === 'https:';
+  const client = isHttps ? https : http;
+
+  const headers = {
+    'content-type': 'application/json',
+    connection: 'Upgrade',
+    upgrade: 'websocket',
+    'sec-websocket-version': '13',
+    'sec-websocket-key': crypto.randomBytes(16).toString('base64')
+  };
+
+  return new Promise((resolve, reject) => {
+    const requestOptions = {
+      protocol: parsed.protocol,
+      hostname: parsed.hostname,
+      port: parsed.port || (isHttps ? 443 : 80),
+      path: parsed.pathname + parsed.search,
+      method: 'POST',
+      headers
+    };
+
+    const req = client.request(requestOptions);
+
+    req.once('upgrade', (res, socket, head) => {
+      if (head && head.length) {
+        socket.unshift(head);
+      }
+      resolve({ response: res, socket });
+    });
+
+    req.once('response', (res) => {
+      let data = '';
+      res.on('data', (chunk) => {
+        data += chunk.toString();
+      });
+      res.on('end', () => {
+        reject(new Error(`Server replied with ${res.statusCode} instead of upgrading. Body: ${data || '<empty>'}`));
+      });
+    });
+
+    req.once('error', reject);
+
+    req.write(body);
+    req.end();
+  });
 }
 
 main().catch((error) => {

@@ -185,6 +185,10 @@ TARGET_URL=https://crypto-order-execution-engine-production.up.railway.app npm r
 
 The script sends the JSON payload, expects an HTTP `101 Switching Protocols`, and logs the raw WebSocket frame bytes it receives before closing the socket.
 
+> **Browser compatibility**: The POST-upgrade handshake currently requires a low-level HTTP client (Node.js, curl, etc.). Browsers cannot issue POST requests that upgrade to WebSockets, so the React frontend keeps using the classic POST + WebSocket GET flow.
+
+> **Hosted environment note**: Railway’s edge proxies terminate the connection before Fastify reads the JSON body whenever `Connection: Upgrade` is included on a POST. You’ll see a `400` response with `"Body cannot be empty when content-type is set to 'application/json'"`. Run the script against a local deployment (or any environment where the client connects directly to Fastify) to exercise the full POST-upgrade flow.
+
 If the headers are omitted, the API falls back to the regular POST+GET pattern shown above.
 ```
 
@@ -292,7 +296,7 @@ WebSocket endpoint for real-time order status updates.
 
 ## 📹 Demo & Proof
 
-- **Video walkthrough** (5 concurrent orders, routing logs, WS dashboard): https://youtu.be/crypto-order-engine-demo
+- **Video walkthrough**: _Pending upload_
 - **Backend deployment**: https://crypto-order-execution-engine-production.up.railway.app
 - **Frontend dashboard**: https://crypto-order-execution-engine.vercel.app/
 - **Transaction proof**: every executed order emits the confirmed signature and explorer link over WebSocket *and* persists it in Postgres. You can fetch the latest 100 log lines (including signatures) via `GET https://crypto-order-execution-engine-production.up.railway.app/logs` or by opening the `History` tab in the UI to copy the explorer link.
