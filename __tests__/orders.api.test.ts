@@ -10,7 +10,7 @@ describe('Orders API', () => {
   let app: ReturnType<typeof buildApp>;
   const validOrderPayload = {
     tokenIn: 'So11111111111111111111111111111111111111112',
-    tokenOut: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    tokenOut: 'EPjFWdd5Auxxxxxxxxxxxxxxx4wEGGkZwyTDt1v',
     amount: 1000000,
     orderType: 'market'
   };
