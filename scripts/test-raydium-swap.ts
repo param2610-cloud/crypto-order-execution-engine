@@ -28,9 +28,9 @@ const CONFIG = {
   RPC_URL: process.env.SOLANA_RPC_URL ?? 'https://api.devnet.solana.com',
   WALLET_PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY ?? '',
   
-  POOL_ID: 'AWVFpbFFnx2VkwLh5FrkFAjkxvTu8tFQYALm4tuN8wqd',
-  TOKEN_IN: '7667oZyeKhXWkFXma7zP9rXhSspbHqVSAXfNVSiwZaJx',
-  TOKEN_OUT: '52oX2aHhnhN8vYbtAhDLGjFKE1eEpNuu1Y3U2t4ALRQT',
+  POOL_ID: 'AWVFpbxxxxxxwLh5FrkFAjkxvTu8tFQYALm4tuN8wqd',
+  TOKEN_IN: '7667oZyeKhXWkFxxxxxxxxXhSspbHqVSAXfNVSiwZaJx',
+  TOKEN_OUT: '52oX2aHhnhN8vYxxxxxxxxxFKE1eEpNuu1Y3U2t4ALRQT',
   
   AMOUNT: 10_000_000_000, // 10 tokens in lamports (9 decimals)
   SLIPPAGE_PERCENT: 10, // 10%
