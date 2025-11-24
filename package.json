@@ -12,6 +12,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
+    "@fastify/cors": "^8.5.0",
     "@fastify/websocket": "^8.3.1",
     "@meteora-ag/dynamic-amm-sdk": "^1.4.1",
     "@raydium-io/raydium-sdk-v2": "^0.2.30-alpha",
@@ -24,7 +25,7 @@
     "bullmq": "^5.7.15",
     "decimal.js": "^10.6.0",
     "dotenv": "^16.4.5",
-    "fastify": "^4.27.2",
+    "fastify": "^4.29.1",
     "ioredis": "^5.4.1",
     "nanoid": "^5.0.7",
     "pino": "^9.4.0",

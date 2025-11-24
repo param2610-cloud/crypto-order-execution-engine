@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import websocket from '@fastify/websocket';
+import cors from '@fastify/cors';
 import { ZodError } from 'zod';
 import { ordersRoute } from '@routes/orders.route';
 import { logger } from '@utils/logger';
@@ -15,6 +16,12 @@ export const buildApp = () => {
 
   app.addHook('onRequest', async (request, reply) => {
     reply.header('x-request-id', request.id);
+  });
+
+  app.register(cors, {
+    origin: true, // Allow all origins for development; restrict in production
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
   });
 
   app.register(websocket, {

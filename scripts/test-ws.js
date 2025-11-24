@@ -4,7 +4,7 @@ const orderId = process.argv[2] || 'test-order-123';
 
 console.log(`Connecting to WS for orderId: ${orderId}`);
 
-const ws = new WebSocket(`ws://localhost:8080/api/orders/execute?orderId=${orderId}`);
+const ws = new WebSocket(`wss://crypto-order-execution-engine-production.up.railway.app/api/orders/execute?orderId=${orderId}`);
 
 ws.on('open', () => {
   console.log('WebSocket connected');
