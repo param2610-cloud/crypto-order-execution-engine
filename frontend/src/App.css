@@ -12,10 +12,36 @@ body {
   min-height: 100vh;
 }
 
+.nav-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #667eea;
+  padding: 10px 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  margin-right: 20px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
 .container {
   max-width: 1600px;
   margin: 0 auto;
   padding: 30px 20px;
+  padding-top: 80px; /* Account for fixed nav */
 }
 
 .header {
@@ -259,6 +285,64 @@ body {
   font-style: italic;
 }
 
+/* Logs page styles */
+.logs-controls {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.refresh-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  background: #667eea;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.refresh-btn:hover:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.refresh-btn.disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.error-message {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.logs-display h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.logs-content {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 20px;
+  font-family: "Monaco", "Courier New", monospace;
+  font-size: 0.8rem;
+  color: #333;
+  max-height: 600px;
+  overflow-y: auto;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 @media (max-width: 1200px) {
   .orders-grid {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -277,27 +361,40 @@ body {
   .order-card {
     padding: 16px;
   }
+
+  .nav-bar {
+    padding: 10px;
+  }
+
+  .nav-link {
+    margin-right: 10px;
+    padding: 6px 12px;
+  }
 }
 
 /* Scrollbar styling */
 .logs-container::-webkit-scrollbar,
-.response-body::-webkit-scrollbar {
+.response-body::-webkit-scrollbar,
+.logs-content::-webkit-scrollbar {
   width: 6px;
 }
 
 .logs-container::-webkit-scrollbar-track,
-.response-body::-webkit-scrollbar-track {
+.response-body::-webkit-scrollbar-track,
+.logs-content::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 10px;
 }
 
 .logs-container::-webkit-scrollbar-thumb,
-.response-body::-webkit-scrollbar-thumb {
+.response-body::-webkit-scrollbar-thumb,
+.logs-content::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 10px;
 }
 
 .logs-container::-webkit-scrollbar-thumb:hover,
-.response-body::-webkit-scrollbar-thumb:hover {
+.response-body::-webkit-scrollbar-thumb:hover,
+.logs-content::-webkit-scrollbar-thumb:hover {
   background: #555;
 }

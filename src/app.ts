@@ -3,6 +3,7 @@ import websocket from '@fastify/websocket';
 import cors from '@fastify/cors';
 import { ZodError } from 'zod';
 import { ordersRoute } from '@routes/orders.route';
+import { logsRoutes } from '@routes/logs.route';
 import { logger } from '@utils/logger';
 
 /**
@@ -31,6 +32,7 @@ export const buildApp = () => {
   });
 
   app.register(ordersRoute);
+  app.register(logsRoutes);
 
   app.setErrorHandler((error, request, reply) => {
     logger.app.error({ err: error, url: request.url }, 'Unhandled error');

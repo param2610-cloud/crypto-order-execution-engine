@@ -1,5 +1,8 @@
+import { Routes, Route, Link } from 'react-router-dom';
 import { useState } from "react";
 import "./App.css";
+import Logs from './Logs.jsx';
+
 const domain = import.meta.env.VITE_BACKEND_DOMAIN || "localhost:8080";
 const isLocal = domain.includes('localhost');
 const protocol = isLocal ? 'http' : 'https';
@@ -66,7 +69,7 @@ const createEmptyOrder = () => ({
   lastPayload: null,
 });
 
-export default function OrderExecutor() {
+function OrderExecutor() {
   const [orders, setOrders] = useState(() =>
     Array.from({ length: 5 }, createEmptyOrder)
   );
@@ -268,6 +271,21 @@ export default function OrderExecutor() {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <div>
+      <nav className="nav-bar">
+        <Link to="/" className="nav-link">Orders</Link>
+        <Link to="/logs" className="nav-link">Logs</Link>
+      </nav>
+      <Routes>
+        <Route path="/" element={<OrderExecutor />} />
+        <Route path="/logs" element={<Logs />} />
+      </Routes>
     </div>
   );
 }
