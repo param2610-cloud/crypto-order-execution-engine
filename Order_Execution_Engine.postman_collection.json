@@ -1,0 +1,191 @@
+    {
+    "info": {
+        "name": "Order Execution Engine API",
+        "description": "API collection for testing the Order Execution Engine with market orders, WebSocket status updates, and DEX routing",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+        "key": "base_url",
+        "value": "http://localhost:8080",
+        "type": "string"
+        },
+        {
+        "key": "ws_url",
+        "value": "ws://localhost:8080",
+        "type": "string"
+        }
+    ],
+    "item": [
+        {
+        "name": "Submit Market Order",
+        "request": {
+            "method": "POST",
+            "header": [
+            {
+                "key": "Content-Type",
+                "value": "application/json"
+            }
+            ],
+            "body": {
+            "mode": "raw",
+            "raw": "{\n  \"tokenIn\": \"So11111111111111111111111111111111111111112\",\n  \"tokenOut\": \"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v\",\n  \"amount\": 1000000,\n  \"orderType\": \"market\",\n  \"orderId\": \"test-order-123\"\n}"
+            },
+            "url": {
+            "raw": "{{base_url}}/api/orders/execute",
+            "host": ["{{base_url}}"],
+            "path": ["api", "orders", "execute"]
+            },
+            "description": "Submit a market order for execution. Returns orderId and initial pending status."
+        },
+        "response": []
+        },
+        {
+        "name": "Submit Market Order - Invalid Payload",
+        "request": {
+            "method": "POST",
+            "header": [
+            {
+                "key": "Content-Type",
+                "value": "application/json"
+            }
+            ],
+            "body": {
+            "mode": "raw",
+            "raw": "{\n  \"tokenIn\": \"\",\n  \"tokenOut\": \"invalid\",\n  \"amount\": -100,\n  \"orderType\": \"limit\"\n}"
+            },
+            "url": {
+            "raw": "{{base_url}}/api/orders/execute",
+            "host": ["{{base_url}}"],
+            "path": ["api", "orders", "execute"]
+            },
+            "description": "Test validation by submitting invalid order payload."
+        },
+        "response": []
+        },
+        {
+        "name": "WebSocket Status Updates",
+        "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+            "raw": "{{ws_url}}/api/orders/execute?orderId={{order_id}}",
+            "host": ["{{ws_url}}"],
+            "path": ["api", "orders", "execute"],
+            "query": [
+                {
+                "key": "orderId",
+                "value": "{{order_id}}",
+                "description": "Order ID from previous API call"
+                }
+            ]
+            },
+            "description": "Connect to WebSocket for real-time order status updates. Use orderId from Submit Market Order response."
+        },
+        "response": []
+        },
+        {
+        "name": "WebSocket - Missing OrderId",
+        "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+            "raw": "{{ws_url}}/api/orders/execute",
+            "host": ["{{ws_url}}"],
+            "path": ["api", "orders", "execute"]
+            },
+            "description": "Test WebSocket connection without orderId parameter - should fail."
+        },
+        "response": []
+        },
+        {
+        "name": "Large SOL to USDC Order",
+        "request": {
+            "method": "POST",
+            "header": [
+            {
+                "key": "Content-Type",
+                "value": "application/json"
+            }
+            ],
+            "body": {
+            "mode": "raw",
+            "raw": "{\n  \"tokenIn\": \"So11111111111111111111111111111111111111112\",\n  \"tokenOut\": \"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v\",\n  \"amount\": 10000000,\n  \"orderType\": \"market\"\n}"
+            },
+            "url": {
+            "raw": "{{base_url}}/api/orders/execute",
+            "host": ["{{base_url}}"],
+            "path": ["api", "orders", "execute"]
+            },
+            "description": "Submit a larger order (0.01 SOL) to test DEX routing and execution."
+        },
+        "response": []
+        },
+        {
+        "name": "USDC to SOL Order",
+        "request": {
+            "method": "POST",
+            "header": [
+            {
+                "key": "Content-Type",
+                "value": "application/json"
+            }
+            ],
+            "body": {
+            "mode": "raw",
+            "raw": "{\n  \"tokenIn\": \"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v\",\n  \"tokenOut\": \"So11111111111111111111111111111111111111112\",\n  \"amount\": 1000000,\n  \"orderType\": \"market\"\n}"
+            },
+            "url": {
+            "raw": "{{base_url}}/api/orders/execute",
+            "host": ["{{base_url}}"],
+            "path": ["api", "orders", "execute"]
+            },
+            "description": "Submit USDC to SOL order to test reverse direction routing."
+        },
+        "response": []
+        },
+        {
+        "name": "Health Check",
+        "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+            "raw": "{{base_url}}/",
+            "host": ["{{base_url}}"],
+            "path": [""]
+            },
+            "description": "Basic health check - should return 404 (no root route defined)."
+        },
+        "response": []
+        },
+        {
+        "name": "Invalid Route",
+        "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+            "raw": "{{base_url}}/invalid-route",
+            "host": ["{{base_url}}"],
+            "path": ["invalid-route"]
+            },
+            "description": "Test 404 handling for invalid routes."
+        },
+        "response": []
+        }
+    ],
+    "event": [
+        {
+        "listen": "prerequest",
+        "script": {
+            "type": "text/javascript",
+            "exec": [
+            "// Set order_id variable from previous response",
+            "if (pm.response && pm.response.code === 202) {",
+            "    const response = pm.response.json();",
+            "    pm.collectionVariables.set('order_id', response.orderId);",
+            "}"
+            ]
+        }
+        }
+    ]
+    }

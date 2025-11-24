@@ -16,20 +16,28 @@ class OrdersController {
     const job = await orderService.submitMarketOrder(request.body);
 
     websocketManager.sendStatus(job.orderId, 'pending');
+    logger.app.info({ orderId: job.orderId }, 'Queued order and sent pending status');
 
     return reply.status(202).send({ orderId: job.orderId, status: 'pending' });
   }
 
   handleWebsocket(connection: SocketStream, request: OrderSocketRequest) {
-    const { orderId } = request.query ?? {};
-    if (!orderId) {
-      logger.ws.warn('WebSocket connection rejected due to missing orderId');
-      connection.socket.close(1008, 'orderId query param required');
-      return;
-    }
+    try {
+      const { orderId } = request.query ?? {};
+      console.log('Handling WS connection for orderId:', orderId);
+      if (!orderId) {
+        logger.ws.warn('WebSocket connection rejected due to missing orderId');
+        connection.socket.close(1008, 'orderId query param required');
+        return;
+      }
 
-    websocketManager.attach(orderId, connection.socket);
-    websocketManager.sendStatus(orderId, 'pending');
+      websocketManager.attach(orderId, connection.socket);
+      websocketManager.sendStatus(orderId, 'pending');
+      logger.ws.info({ orderId }, 'WS connected and sent pending status');
+    } catch (error) {
+      logger.ws.error({ error }, 'WS handler error');
+      connection.socket.close(1011, 'Internal server error');
+    }
   }
 }
 

@@ -32,10 +32,10 @@ const acquireRateLimit = async () => {
   }
 };
 
-const recordStatus = async (job: Job<OrderJobPayload>, status: OrderLifecycleStatus, detail?: string) => {
+const recordStatus = async (job: Job<OrderJobPayload>, status: OrderLifecycleStatus, detail?: string, link?: string) => {
   const emitted = new Set(job.data.emittedStatuses ?? []);
   if (emitted.has(status)) {
-    if (detail) websocketManager.sendStatus(job.data.orderId, status, detail);
+    if (detail) websocketManager.sendStatus(job.data.orderId, status, detail, link);
     return;
   }
 
@@ -46,7 +46,7 @@ const recordStatus = async (job: Job<OrderJobPayload>, status: OrderLifecycleSta
   } catch (error) {
     logger.queue.warn({ orderId: job.data.orderId, status, error }, 'Failed to persist lifecycle status');
   }
-  websocketManager.sendStatus(job.data.orderId, status, detail);
+  websocketManager.sendStatus(job.data.orderId, status, detail, link);
 };
 
 const orderProcessor: Processor<OrderJobPayload> = async (job: Job<OrderJobPayload>) => {
@@ -64,12 +64,12 @@ const orderProcessor: Processor<OrderJobPayload> = async (job: Job<OrderJobPaylo
       additionalSigners: built.signers,
       onSubmitted: async (sig) => {
         job.data.lastTxSignature = sig;
-        await recordStatus(job, 'submitted', sig);
+        await recordStatus(job, 'submitted', sig, `https://explorer.solana.com/tx/${sig}?cluster=devnet`);
       }
     });
 
     logSignatureExplorerHint(signature);
-    await recordStatus(job, 'confirmed', signature);
+    await recordStatus(job, 'confirmed', signature, `https://explorer.solana.com/tx/${signature}?cluster=devnet`);
 
     return {
       jobId: job.id,

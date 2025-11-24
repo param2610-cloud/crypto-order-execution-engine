@@ -9,7 +9,7 @@ import { logger } from '@utils/logger';
 export class OrderService {
   async submitMarketOrder(payload: unknown): Promise<OrderJobPayload> {
     const parsed: MarketOrderInput = marketOrderSchema.parse(payload);
-    const orderId = generateOrderId();
+    const orderId = parsed.orderId || generateOrderId();
 
     const jobPayload: OrderJobPayload = {
       ...parsed,

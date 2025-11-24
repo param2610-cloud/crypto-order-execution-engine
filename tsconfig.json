@@ -8,9 +8,8 @@
     "strict": true,
     "skipLibCheck": true,
     "outDir": "dist",
-    "rootDir": "src",
     "baseUrl": "src",
-    "types": ["node"],
+    "types": ["node", "jest"],
     "resolveJsonModule": true,
     "sourceMap": true,
     "noImplicitAny": true,
@@ -26,6 +25,6 @@
       "@utils/*": ["utils/*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "__tests__/**/*"],
   "exclude": ["node_modules", "dist"]
 }

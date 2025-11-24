@@ -23,6 +23,7 @@ class WebSocketManager {
     if (backlog?.length) {
       backlog.forEach((message) => socket.send(JSON.stringify(message)));
       this.pendingMessages.delete(orderId);
+      logger.ws.info({ orderId, count: backlog.length }, 'Sent queued WS messages');
     }
   }
 
@@ -32,14 +33,24 @@ class WebSocketManager {
       const queued = this.pendingMessages.get(orderId) ?? [];
       queued.push(payload);
       this.pendingMessages.set(orderId, queued);
+      console.log(`WS message queued for ${orderId}:`, payload.status);
+      logger.ws.debug({ orderId, status: payload.status }, 'WS message queued');
       return;
     }
 
-    socket.send(JSON.stringify(payload));
+    try {
+      socket.send(JSON.stringify(payload));
+      console.log(`WS message sent to ${orderId}:`, payload.status);
+      logger.ws.debug({ orderId, status: payload.status }, 'WS message sent');
+    } catch (error) {
+      console.error(`Failed to send WS message to ${orderId}:`, error);
+      logger.ws.error({ orderId, error }, 'Failed to send WS message');
+    }
   }
 
-  sendStatus(orderId: string, status: OrderLifecycleStatus, detail?: string) {
-    this.send(orderId, { orderId, status, detail });
+  sendStatus(orderId: string, status: OrderLifecycleStatus, detail?: string, link?: string) {
+    logger.ws.info({ orderId, status, detail, link }, 'Sending WS status');
+    this.send(orderId, { orderId, status, detail, link });
   }
 
   disconnect(orderId: string) {

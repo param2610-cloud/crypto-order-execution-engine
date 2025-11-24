@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@fastify/websocket": "^8.3.1",
@@ -31,10 +34,40 @@
   },
   "devDependencies": {
     "@types/bn.js": "^5.2.0",
+    "@types/jest": "^29.5.12",
     "@types/node": "^20.17.6",
+    "@types/supertest": "^6.0.2",
     "@types/ws": "^8.5.12",
+    "jest": "^29.7.0",
+    "jest-websocket-mock": "^2.5.0",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.5",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.6.3"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": ["<rootDir>/src", "<rootDir>/__tests__"],
+    "testMatch": ["**/__tests__/**/*.test.ts", "**/?(*.)+(spec|test).ts"],
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/**/*.d.ts",
+      "!src/index.ts"
+    ],
+    "setupFilesAfterEnv": ["<rootDir>/__tests__/setup.ts"],
+    "moduleNameMapper": {
+      "^@config/(.*)$": "<rootDir>/src/config/$1",
+      "^@controllers/(.*)$": "<rootDir>/src/controllers/$1",
+      "^@dex/(.*)$": "<rootDir>/src/dex/$1",
+      "^@queue/(.*)$": "<rootDir>/src/queue/$1",
+      "^@routes/(.*)$": "<rootDir>/src/routes/$1",
+      "^@services/(.*)$": "<rootDir>/src/services/$1",
+      "^@type-defs/(.*)$": "<rootDir>/src/types/$1",
+      "^@utils/(.*)$": "<rootDir>/src/utils/$1",
+      "^@ws/(.*)$": "<rootDir>/src/ws/$1",
+      "^@app$": "<rootDir>/src/app"
+    }
   }
 }

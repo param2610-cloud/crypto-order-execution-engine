@@ -11,14 +11,24 @@ export const ordersRoute: FastifyPluginAsync = async (fastify) => {
     handler: (request, reply) => ordersController.execute(request, reply)
   });
 
-  fastify.route<{ Querystring: { orderId?: string } }>({
-    method: 'GET',
-    url: '/api/orders/execute',
+  fastify.get('/api/orders/execute', {
     websocket: true,
-    handler: async (_, reply) => {
-      reply.code(405).send({ message: 'Use WebSocket upgrade for this path' });
-    },
-    wsHandler: (connection, request: FastifyRequest<{ Querystring: { orderId?: string } }>) =>
-      ordersController.handleWebsocket(connection, request)
+    schema: {
+      querystring: {
+        type: 'object',
+        properties: {
+          orderId: { type: 'string' }
+        },
+        required: ['orderId']
+      }
+    }
+  }, function (connection, request: FastifyRequest<{ Querystring: { orderId: string } }>) {
+    try {
+      console.log('WS upgrade detected for orderId:', request.query.orderId);
+      ordersController.handleWebsocket(connection, request);
+    } catch (error) {
+      console.error('WS handler error:', error);
+      connection.socket.close(1011, 'Internal server error');
+    }
   });
 };

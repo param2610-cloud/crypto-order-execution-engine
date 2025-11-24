@@ -7,7 +7,8 @@ export const marketOrderSchema = z.object({
   tokenIn: z.string().min(1, 'tokenIn is required'),
   tokenOut: z.string().min(1, 'tokenOut is required'),
   amount: z.number().positive('amount must be positive'),
-  orderType: z.literal('market')
+  orderType: z.literal('market'),
+  orderId: z.string().optional() // For testing
 });
 
 export type MarketOrderInput = z.infer<typeof marketOrderSchema>;
@@ -33,4 +34,5 @@ export interface OrderStatusMessage {
   orderId: string;
   status: OrderLifecycleStatus;
   detail?: string;
+  link?: string;
 }
