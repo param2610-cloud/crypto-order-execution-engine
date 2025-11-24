@@ -2,9 +2,9 @@ import BN from 'bn.js';
 import Decimal from 'decimal.js';
 import { CurveCalculator, FeeOn, Raydium, TxVersion, type CpmmParsedRpcData } from '@raydium-io/raydium-sdk-v2';
 import { PublicKey } from '@solana/web3.js';
-import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddress, getAccount } from '@solana/spl-token';
+import { NATIVE_MINT, createAssociatedTokenAccountInstruction, getAssociatedTokenAddress, getAccount } from '@solana/spl-token';
 import { DexClient, QuoteRequest, QuoteResponse, SwapBuildParams, BuiltTransaction } from './router.interface';
-import { getConnection, getWallet } from './solana';
+import { ensureWrappedSolBalance, getConnection, getWallet } from './solana';
 import { logger } from '@utils/logger';
 
 type PoolCandidate = {
@@ -194,6 +194,10 @@ export class RaydiumClient implements DexClient {
   async buildSwapTx({ quote, wallet }: SwapBuildParams): Promise<BuiltTransaction> {
   if (!quote.poolId) {
     throw new Error('Missing poolId in quote');
+  }
+
+  if (quote.request.tokenIn.equals(NATIVE_MINT)) {
+    await ensureWrappedSolBalance(quote.request.amount);
   }
 
   const poolResources = await this.loadPoolResources(quote.poolId);

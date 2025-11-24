@@ -30,8 +30,10 @@ jest.mock('@utils/logger', () => ({
 jest.mock('@dex/solana', () => ({
   getConnection: jest.fn(() => ({})),
   getWallet: jest.fn(() => ({ publicKey: 'mock-public-key' })),
+  getMintDecimals: jest.fn().mockResolvedValue(9),
   sendAndConfirm: jest.fn().mockResolvedValue('mock-signature'),
-  logSignatureExplorerHint: jest.fn()
+  logSignatureExplorerHint: jest.fn(),
+  ensureWrappedSolBalance: jest.fn().mockResolvedValue(undefined)
 }));
 
 // Mock DEX clients

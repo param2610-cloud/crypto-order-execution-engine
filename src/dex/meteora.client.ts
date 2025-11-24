@@ -2,9 +2,10 @@ import BN from 'bn.js';
 import Decimal from 'decimal.js';
 import AmmImpl from '@meteora-ag/dynamic-amm-sdk';
 import { PublicKey, Transaction } from '@solana/web3.js';
+import { NATIVE_MINT } from '@solana/spl-token';
 import { DexClient, QuoteRequest, QuoteResponse, SwapBuildParams, BuiltTransaction } from './router.interface';
 import { logger } from '@utils/logger';
-import { getConnection } from './solana';
+import { ensureWrappedSolBalance, getConnection } from './solana';
 
 type MeteoraQuote = {
 	poolAddress: PublicKey;
@@ -83,6 +84,10 @@ export class MeteoraClient implements DexClient {
 		const poolAddress = quote.poolId;
 		if (!poolAddress) {
 			throw new Error('Missing Meteora pool id');
+		}
+
+		if (quote.request.tokenIn.equals(NATIVE_MINT)) {
+			await ensureWrappedSolBalance(quote.request.amount);
 		}
 		const amm = await this.loadPool(new PublicKey(poolAddress));
 		const meteoraTx = await amm.swap(

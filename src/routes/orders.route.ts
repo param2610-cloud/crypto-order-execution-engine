@@ -1,6 +1,15 @@
 import { FastifyPluginAsync, FastifyRequest } from 'fastify';
 import { ordersController } from '@controllers/orders.controller';
 
+const isWebSocketUpgrade = (request: FastifyRequest): boolean => {
+  const upgradeHeader = request.headers['upgrade'];
+  if (!upgradeHeader) return false;
+  if (Array.isArray(upgradeHeader)) {
+    return upgradeHeader.some((value) => value.toLowerCase() === 'websocket');
+  }
+  return upgradeHeader.toLowerCase() === 'websocket';
+};
+
 /**
  * Registers HTTP + WebSocket endpoints for /api/orders/execute.
  */
@@ -20,7 +29,10 @@ export const ordersRoute: FastifyPluginAsync = async (fastify) => {
   fastify.route<{ Body: unknown }>({
     method: 'POST',
     url: '/api/orders/execute',
-    handler: (request, reply) => ordersController.execute(request, reply)
+    handler: (request, reply) =>
+      isWebSocketUpgrade(request)
+        ? ordersController.executeWithUpgrade(fastify, request, reply)
+        : ordersController.execute(request, reply)
   });
 
   fastify.get('/api/orders/execute', {

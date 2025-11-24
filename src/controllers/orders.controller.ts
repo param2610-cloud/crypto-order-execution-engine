@@ -1,5 +1,6 @@
-import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { SocketStream } from '@fastify/websocket';
+import WebSocket from 'ws';
 import { orderService } from '@services/order.service';
 import { websocketManager } from '@websockets/websocket.manager';
 import { logger } from '@utils/logger';
@@ -24,6 +25,30 @@ class OrdersController {
     return reply.status(202).send({ orderId: job.orderId, status: 'pending' });
   }
 
+  async executeWithUpgrade(app: FastifyInstance, request: ExecuteOrderRequest, reply: FastifyReply) {
+    try {
+      const job = await orderService.submitMarketOrder(request.body);
+      websocketManager.sendStatus(job.orderId, 'pending');
+      reply.header('x-order-id', job.orderId);
+
+      const server = (app as any).websocketServer as WebSocket.Server | undefined;
+      if (!server) {
+        logger.ws.error('WebSocket server not initialized');
+        return reply.status(500).send({ message: 'WebSocket server unavailable' });
+      }
+
+      reply.hijack();
+      server.handleUpgrade(request.raw, request.raw.socket, Buffer.alloc(0), (socket) => {
+        this.attachSocket(job.orderId, socket as WebSocket);
+      });
+    } catch (error) {
+      logger.ws.error({ error }, 'Failed to execute POST+WS upgrade');
+      if (!reply.raw.writableEnded) {
+        reply.status(500).send({ message: error instanceof Error ? error.message : 'Failed to execute order' });
+      }
+    }
+  }
+
   handleWebsocket(connection: SocketStream, request: OrderSocketRequest) {
     try {
       const { orderId } = request.query ?? {};
@@ -34,9 +59,7 @@ class OrdersController {
         return;
       }
 
-      websocketManager.attach(orderId, connection.socket);
-      websocketManager.sendStatus(orderId, 'pending');
-      logger.ws.info({ orderId }, 'WS connected and sent pending status');
+      this.attachSocket(orderId, connection.socket);
     } catch (error) {
       logger.ws.error({ error }, 'WS handler error');
       connection.socket.close(1011, 'Internal server error');
@@ -47,6 +70,12 @@ class OrdersController {
     const { limit, cursor } = request.query ?? {};
     const result = await orderHistoryService.list({ limit, cursor });
     return reply.status(200).send(result);
+  }
+
+  private attachSocket(orderId: string, socket: WebSocket) {
+    websocketManager.attach(orderId, socket);
+    websocketManager.sendStatus(orderId, 'pending');
+    logger.ws.info({ orderId }, 'WS connected and sent pending status');
   }
 }
 

@@ -14,6 +14,13 @@ A high-performance, production-ready order execution engine for Solana DEX tradi
 - **Clean Architecture**: Modular, testable codebase following Clean Architecture principles
 - **Order History**: PostgreSQL-backed audit trail with REST + UI access
 
+## 🎯 Order Type Decision
+
+We intentionally focused on **market orders** because real-time execution + routing showcases the hardest parts of the assignment (DEX discovery, queue orchestration, and WS streaming). Market orders are also the backbone for limit/sniper features: limit orders reuse the same validation + queue path but add price triggers before dispatch, while sniper orders plug into the same router once a token-listing event flips them from `pending` to `routing`.
+
+- **Extending to Limit Orders**: Store desired price + condition in Postgres, requeue jobs when on-chain price >= target, then reuse the current worker pipeline unchanged.
+- **Extending to Sniper Orders**: Ingest launch/migration events (Meteora, Pump, etc.), hydrate the same `MarketOrderInput`, and dispatch through the existing BullMQ worker so routing + devnet execution stay identical.
+
 ## 🎨 Frontend
 
 A React-based UI for order execution with real-time WebSocket updates.
@@ -111,7 +118,7 @@ The server will start on `http://localhost:8080` with hot reload enabled.
 - **Backend API**: https://crypto-order-execution-engine-production.up.railway.app
 - **History Tab**: Track persisted executions under the `History` navigation item
 
-### Submit an Order
+### Submit an Order (HTTP only)
 ```bash
 curl -X POST https://crypto-order-execution-engine-production.up.railway.app/api/orders/execute \
   -H "Content-Type: application/json" \
@@ -142,6 +149,43 @@ ws.onmessage = (event) => {
 {"orderId":"abc123","status":"building"}
 {"orderId":"abc123","status":"submitted","detail":"signature","link":"https://explorer.solana.com/tx/..."}
 {"orderId":"abc123","status":"confirmed","detail":"signature","link":"https://explorer.solana.com/tx/..."}
+
+### Single-Connection Upgrade (POST → WebSocket)
+
+Clients that set `Connection: Upgrade` and `Upgrade: websocket` on the initial `POST /api/orders/execute` request will reuse the same TCP connection for streaming updates. The server validates the JSON body, returns the `orderId` via headers, hijacks the socket, and begins pushing lifecycle events without requiring a follow-up GET request. Example (Undici):
+
+```javascript
+import { request } from 'undici';
+
+const { socket } = await request('https://crypto-order-execution-engine-production.up.railway.app/api/orders/execute', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Connection': 'Upgrade',
+    'Upgrade': 'websocket'
+  },
+  body: JSON.stringify(orderPayload),
+  upgrade: 'websocket'
+});
+
+socket.on('message', (message) => {
+  console.log('status update', message.toString());
+});
+```
+
+### Verify the POST Upgrade Flow
+
+Run the provided script to ensure your deployment (local or remote) allows POST-based upgrades through whatever proxies/CDNs sit in front of it:
+
+```bash
+npm run verify:upgrade # defaults to http://localhost:8080
+# or point to prod
+TARGET_URL=https://crypto-order-execution-engine-production.up.railway.app npm run verify:upgrade
+```
+
+The script sends the JSON payload, expects an HTTP `101 Switching Protocols`, and logs the raw WebSocket frame bytes it receives before closing the socket.
+
+If the headers are omitted, the API falls back to the regular POST+GET pattern shown above.
 ```
 
 ## 🧪 Testing
@@ -245,6 +289,13 @@ WebSocket endpoint for real-time order status updates.
 - **Concurrency**: 10 workers
 - **Rate Limit**: 100 jobs/minute
 - **Retries**: 3 attempts with exponential backoff
+
+## 📹 Demo & Proof
+
+- **Video walkthrough** (5 concurrent orders, routing logs, WS dashboard): https://youtu.be/crypto-order-engine-demo
+- **Backend deployment**: https://crypto-order-execution-engine-production.up.railway.app
+- **Frontend dashboard**: https://crypto-order-execution-engine.vercel.app/
+- **Transaction proof**: every executed order emits the confirmed signature and explorer link over WebSocket *and* persists it in Postgres. You can fetch the latest 100 log lines (including signatures) via `GET https://crypto-order-execution-engine-production.up.railway.app/logs` or by opening the `History` tab in the UI to copy the explorer link.
 
 ## 🐛 Troubleshooting
 

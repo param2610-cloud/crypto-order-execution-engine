@@ -139,6 +139,28 @@ export const unwrapSol = async (): Promise<void> => {
   await sendAndConfirm(tx);
 };
 
+export const ensureWrappedSolBalance = async (amountLamports: bigint): Promise<void> => {
+  if (amountLamports <= 0n) {
+    return;
+  }
+
+  const wallet = getWallet();
+  const ata = await getAssociatedTokenAddress(NATIVE_MINT, wallet.publicKey);
+  const connection = getConnection();
+
+  try {
+    const balance = await connection.getTokenAccountBalance(ata);
+    const current = BigInt(balance?.value?.amount ?? '0');
+    if (current >= amountLamports) {
+      return;
+    }
+    await wrapSol(amountLamports - current);
+  } catch (error) {
+    logger.dex.debug({ error }, 'WSOL balance query failed, wrapping full amount');
+    await wrapSol(amountLamports);
+  }
+};
+
 export const ensureAtaInstruction = async (
   mint: PublicKey,
   owner: PublicKey,

@@ -9,7 +9,8 @@
     "start": "node dist/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "verify:upgrade": "node scripts/verify-post-upgrade.js"
   },
   "dependencies": {
     "@fastify/cors": "^8.5.0",
@@ -32,6 +33,7 @@
     "pino": "^9.4.0",
     "pino-pretty": "^11.2.2",
     "tsc-alias": "^1.8.16",
+    "undici": "^6.22.0",
     "ws": "^8.17.1",
     "zod": "^3.23.8"
   },
